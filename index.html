@@ -6,11 +6,7 @@
   <title>티니핑 이름 맞추기 게임</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-    #game-container {
-      position: relative;
-      max-width: 400px;
-      margin: 0 auto;
-    }
+    #game-container { max-width: 400px; margin: 0 auto; }
     h1 { font-size: 2em; }
     #character-img {
       width: 100%; height: auto;
@@ -40,18 +36,6 @@
       color: white;
     }
     .next-btn:hover { background: #45A049; }
-
-    /* Style for the video */
-    #correct-video {
-      display: none; /* Hidden by default */
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-      width: 95%;
-      border-radius: 8px;
-    }
   </style>
 </head>
 <body>
@@ -60,12 +44,10 @@
     <div>
       <img id="character-img" src="" alt="캐릭터 이미지">
     </div>
-    <div id="answer-text"></div>
+    <div id="answer-text"></div> <!-- ⬅️ 위치 중요 -->
     <div id="choices1"></div>
     <div id="choices2" style="display:none;"></div>
     <div id="message"></div>
-    
-    <video id="correct-video" src="" muted playsinline></video> 
   </div>
 
   <script>
@@ -92,41 +74,75 @@
     }
 
     const characters = [
-      { name: '모야핑', img: 'moyaping.png' }, { name: '아자핑', img: 'ajaping.png' },
-      { name: '씽씽핑', img: 'ssingssingping.png' }, { name: '하츄핑', img: 'hachuupping.jpeg' },
-      { name: '깡총핑', img: 'kkangchongping.png' }, { name: '라라핑', img: 'raraping.png' },
-      { name: '쪼꼼핑', img: 'jjokkomping.png' }, { name: '찌릿핑', img: 'jjiritping.png' },
-      { name: '꾸래핑', img: 'kkuraeping.png' }, { name: '샤샤핑', img: 'syasyaping.png' },
-      { name: '노라핑', img: 'noraping.png' }, { name: '트러핑', img: 'teureoping.jpeg' },
-      { name: '나르핑', img: 'nareuping.png' }, { name: '맛나핑', img: 'matnaping.png' },
-      { name: '꺼꿀핑', img: 'kkeokkulping.png' }, { name: '나나핑', img: 'nanaping.png' },
-      { name: '간호핑', img: 'ganhoping.png' }, { name: '믿어핑', img: 'mideoping.png' },
-      { name: '바네핑', img: 'baneping.png' }, { name: '딩동핑', img: 'dingdongping.png' },
-      { name: '포실핑', img: 'posilping.png' }, { name: '눈꽃핑', img: 'nunkkotping.png' },
-      { name: '차캐핑', img: 'chakyaeping.png' }, { name: '베베핑', img: 'bebeping.png' },
-      { name: '아잉핑', img: 'ayingping.png' }, { name: '훌라핑', img: 'hullaping.png' },
-      { name: '핫케핑', img: 'hatkeping.png' }, { name: '주네핑', img: 'juneping.png' },
-      { name: '깜빡핑', img: 'kkambbakping.png' }, { name: '쪼꼬핑', img: 'jjokkoping.png' },
-      { name: '빛나핑', img: 'bitnaping.jpeg' }, { name: '아휴핑', img: 'ahyuping.png' },
-      { name: '얌얌핑', img: 'yamyamping.png' }, { name: '뿌뿌핑', img: 'ppuppuping.png' },
-      { name: '바로핑', img: 'baroping.jpeg' }, { name: '토이핑', img: 'toiping.png' },
-      { name: '뚝딱핑', img: 'ttukttakping.png' }, { name: '가면핑', img: 'gamyunping.png' },
-      { name: '고마핑', img: 'gomaping.png' }, { name: '공쥬핑', img: 'gongjyuping.png' },
-      { name: '그림핑', img: 'geurimping.png' }, { name: '까르핑', img: 'kkareuping.png' },
-      { name: '나눔핑', img: 'nanumping.png' }, { name: '달콤핑', img: 'dalkomping.png' },
-      { name: '덜덜핑', img: 'deoldeolping.png' }, { name: '따라핑', img: 'ttaraping.png' },
-      { name: '딱풀핑', img: 'ttakpulping.png' }, { name: '마카핑', img: 'makaping.png' },
-      { name: '말랑핑', img: 'mallangping.png' }, { name: '메모핑', img: 'memoping.png' },
-      { name: '멜로핑', img: 'melloping.jpeg' }, { name: '무거핑', img: 'mugeoping.png' },
-      { name: '발레핑', img: 'balleping.png' }, { name: '부끄핑', img: 'bukkeuping.png' },
-      { name: '빙글핑', img: 'binggeulping.png' }, { name: '빤짝핑', img: 'banjakping.jpeg' },
-      { name: '삐짐핑', img: 'ppijimping.png' }, { name: '소원핑', img: 'sowonping.png' },
-      { name: '솔찌핑', img: 'soljjiping.png' }, { name: '앙대핑', img: 'angdaeping.png' },
-      { name: '요거핑', img: 'yogeoping.png' }, { name: '짝짝핑', img: 'jjakjjakping.png' },
-      { name: '차차핑', img: 'chachaping.png' }, { name: '투투핑', img: 'tutuping.png' },
-      { name: '패션핑', img: 'paesyonping.png' }, { name: '함께핑', img: 'hamkkaeping.png' },
-      { name: '화나핑', img: 'hwanaping.png' }, { name: '힘내핑', img: 'himnaeping.png' }
-    ];
+  { name: '모야핑', img: 'moyaping.png' },
+  { name: '아자핑', img: 'ajaping.png' },
+  { name: '씽씽핑', img: 'ssingssingping.png' },
+  { name: '하츄핑', img: 'hachuupping.jpeg' },
+  { name: '깡총핑', img: 'kkangchongping.png' },
+  { name: '라라핑', img: 'raraping.png' },
+  { name: '쪼꼼핑', img: 'jjokkomping.png' },
+  { name: '찌릿핑', img: 'jjiritping.png' },
+  { name: '꾸래핑', img: 'kkuraeping.png' },
+  { name: '샤샤핑', img: 'syasyaping.png' },
+  { name: '노라핑', img: 'noraping.png' },
+  { name: '트러핑', img: 'teureoping.jpeg' },
+  { name: '나르핑', img: 'nareuping.png' },
+  { name: '맛나핑', img: 'matnaping.png' },
+  { name: '꺼꿀핑', img: 'kkeokkulping.png' },
+  { name: '나나핑', img: 'nanaping.png' },
+  { name: '간호핑', img: 'ganhoping.png' },
+  { name: '믿어핑', img: 'mideoping.png' },
+  { name: '바네핑', img: 'baneping.png' },
+  { name: '딩동핑', img: 'dingdongping.png' },
+  { name: '포실핑', img: 'posilping.png' },
+  { name: '눈꽃핑', img: 'nunkkotping.png' },
+  { name: '차캐핑', img: 'chakyaeping.png' },
+  { name: '베베핑', img: 'bebeping.png' },
+  { name: '아잉핑', img: 'ayingping.png' },
+  { name: '훌라핑', img: 'hullaping.png' },
+  { name: '핫케핑', img: 'hatkeping.png' },
+  { name: '주네핑', img: 'juneping.png' },
+  { name: '깜빡핑', img: 'kkambbakping.png' },
+  { name: '쪼꼬핑', img: 'jjokkoping.png' },
+  { name: '빛나핑', img: 'bitnaping.jpeg' },
+  { name: '아휴핑', img: 'ahyuping.png' },
+  { name: '얌얌핑', img: 'yamyamping.png' },
+  { name: '뿌뿌핑', img: 'ppuppuping.png' },
+  { name: '바로핑', img: 'baroping.jpeg' },
+  { name: '토이핑', img: 'toiping.png' },
+  { name: '뚝딱핑', img: 'ttukttakping.png' },
+  { name: '가면핑', img: 'gamyunping.png' },
+  { name: '고마핑', img: 'gomaping.png' },
+  { name: '공쥬핑', img: 'gongjyuping.png' },
+  { name: '그림핑', img: 'geurimping.png' },
+  { name: '까르핑', img: 'kkareuping.png' },
+  { name: '나눔핑', img: 'nanumping.png' },
+  { name: '달콤핑', img: 'dalkomping.png' },
+  { name: '덜덜핑', img: 'deoldeolping.png' },
+  { name: '따라핑', img: 'ttaraping.png' },
+  { name: '딱풀핑', img: 'ttakpulping.png' },
+  { name: '마카핑', img: 'makaping.png' },
+  { name: '말랑핑', img: 'mallangping.png' },
+  { name: '메모핑', img: 'memoping.png' },
+  { name: '멜로핑', img: 'melloping.jpeg' },
+  { name: '무거핑', img: 'mugeoping.png' },
+  { name: '발레핑', img: 'balleping.png' },
+  { name: '부끄핑', img: 'bukkeuping.png' },
+  { name: '빙글핑', img: 'binggeulping.png' },
+  { name: '빤짝핑', img: 'banjakping.jpeg' },
+  { name: '삐짐핑', img: 'ppijimping.png' },
+  { name: '소원핑', img: 'sowonping.png' },
+  { name: '솔찌핑', img: 'soljjiping.png' },
+  { name: '앙대핑', img: 'angdaeping.png' },
+  { name: '요거핑', img: 'yogeoping.png' },
+  { name: '짝짝핑', img: 'jjakjjakping.png' },
+  { name: '차차핑', img: 'chachaping.png' },
+  { name: '투투핑', img: 'tutuping.png' },
+  { name: '패션핑', img: 'paesyonping.png' },
+  { name: '함께핑', img: 'hamkkaeping.png' },
+  { name: '화나핑', img: 'hwanaping.png' },
+  { name: '힘내핑', img: 'himnaeping.png' }
+];
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -214,49 +230,33 @@
       c2.style.display = 'block';
     }
 
-    function checkAnswer(current) {
-      const syllables = [...current.name];
-      if (selectedFirst === syllables[0] && selectedSecond === syllables[1]) {
-        document.getElementById('message').textContent = '';
-        showCorrect();
-      } else {
-        document.getElementById('message').textContent = '틀렸습니다. 다시 시도해주세요.';
-      }
-    }
+function checkAnswer(current) {
+  const syllables = [...current.name];
+  if (selectedFirst === syllables[0] && selectedSecond === syllables[1]) {
+    document.getElementById('message').textContent = '';
+    showCorrect();
+  } else {
+    document.getElementById('message').textContent = '틀렸습니다. 다시 시도해주세요.';
+    // ❌ 정답 표시 업데이트하지 않음 — 유지
+  }
+}
+
 
     function showCorrect() {
       const current = questions[currentIndex];
       speak(current.name);
-      
-      document.getElementById('choices1').style.display = 'none';
       document.getElementById('choices2').style.display = 'none';
-      document.getElementById('answer-text').innerHTML = '';
-
-      const video = document.getElementById('correct-video');
-      // 현재 캐릭터의 이름으로 MP4 파일 경로를 설정합니다.
-      video.src = `${current.name}.mp4`; 
-      
-      video.style.display = 'block';
-      video.currentTime = 0;
-      video.play();
-
-      video.onended = () => {
-        video.style.display = 'none'; 
-        // 비디오 src를 다시 초기화하여 다음 문제에 영향을 주지 않도록 할 수도 있습니다.
-        // video.src = ""; 
-
-        document.getElementById('answer-text').innerHTML = `
-          <div style="margin-top: 8px; font-size: 1.5em; font-weight: bold;">정답: ${current.name}</div>
-          <button id="next-btn" class="next-btn">Next</button>
-        `;
-        document.getElementById('next-btn').onclick = () => {
-          currentIndex++;
-          if (currentIndex < questions.length) {
-            loadQuestion();
-          } else {
-            document.getElementById('game-container').innerHTML = '<h2>🎉 모든 문제를 완료했습니다!</h2>';
-          }
-        };
+      document.getElementById('answer-text').innerHTML = `
+        <div style="margin-top: 8px; font-size: 1.5em; font-weight: bold;">정답: ${current.name}</div>
+        <button id="next-btn" class="next-btn">Next</button>
+      `;
+      document.getElementById('next-btn').onclick = () => {
+        currentIndex++;
+        if (currentIndex < questions.length) {
+          loadQuestion();
+        } else {
+          document.getElementById('game-container').innerHTML = '<h2>🎉 모든 문제를 완료했습니다!</h2>';
+        }
       };
     }
 
