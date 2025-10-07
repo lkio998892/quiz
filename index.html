@@ -6,7 +6,7 @@
   <title>티니핑 이름 맞추기 게임</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-    #game-container { max-width: 400px; margin: 0 auto; }
+    #game-container { max-width: 400px; margin: 0 auto; position: relative; }
     h1 { font-size: 2em; }
     #character-img, #character-video {
       width: 100%; height: auto;
@@ -43,8 +43,8 @@
     <h1>티니핑 이름 맞추기</h1>
     <div>
       <img id="character-img" src="" alt="캐릭터 이미지">
-      <!-- ✅ 샤샤핑 정답 시 표시되는 비디오 -->
-      <video id="character-video" style="display:none;" playsinline muted loop></video>
+      <!-- ✅ 샤샤핑 정답 시 표시되는 비디오 (자동재생 없음, 소리 재생 위해 muted 제거) -->
+      <video id="character-video" style="display:none;" playsinline loop preload="metadata"></video>
     </div>
     <div id="answer-text"></div> <!-- ⬅️ 위치 중요 -->
     <div id="choices1"></div>
@@ -76,7 +76,7 @@
         if (sunhiVoice) utter.voice = sunhiVoice;
         speechSynthesis.speak(utter);
       } catch(e) {
-        // 일부 환경에서 speechSynthesis 미지원시 무시
+        // 미지원 환경은 무시
       }
     }
 
@@ -156,7 +156,8 @@
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [array[i], array[j]] = [array[j]], array[i];
+        [array[i], array[j]] = [array[j], array[i]]; // 안전하게 스왑
       }
       return array;
     }
@@ -172,11 +173,13 @@
       const videoEl = document.getElementById('character-video');
       const imgEl = document.getElementById('character-img');
 
-      // 🔄 이전 문제의 비디오 상태 완전 초기화
+      // 🔄 이전 문제의 비디오 상태 초기화
       try { videoEl.pause(); } catch(e){}
       videoEl.removeAttribute('src');
       videoEl.load();
       videoEl.style.display = 'none';
+      videoEl.controls = false; // 표시는 다음에 필요할 때만
+      videoEl.muted = false;    // 기본값: 소리 켜짐 (사용자 재생 필요)
 
       imgEl.style.display = 'block';
 
@@ -265,7 +268,7 @@
       }
     }
 
-    // ====== 정답 처리 (샤샤핑일 때만 비디오 재생) ======
+    // ====== 정답 처리 (샤샤핑일 때만 비디오 표시, 사용자가 직접 재생) ======
     function showCorrect() {
       const current = questions[currentIndex];
       speak(current.name);
@@ -273,16 +276,18 @@
       const videoEl = document.getElementById('character-video');
       const imgEl   = document.getElementById('character-img');
 
-      // 샤샤핑 등 video 속성이 있는 캐릭터만 비디오 전환
+      // 샤샤핑 등 video 속성이 있는 캐릭터만 비디오로 전환
       if (current.video) {
         imgEl.style.display = 'none';
         videoEl.src = current.video; // syasyaping.mp4
         videoEl.style.display = 'block';
-        videoEl.muted = true; // 모바일 자동재생 호환
-        videoEl.play().catch(() => {
-          // 자동재생 차단된 경우 컨트롤러 노출
-          videoEl.setAttribute('controls', 'controls');
-        });
+
+        // ✅ 자동재생 금지 / 음소거 해제 / 컨트롤 표시
+        videoEl.autoplay = false;
+        videoEl.muted = false;
+        videoEl.controls = true;
+
+        // ❌ videoEl.play() 호출하지 않음 — 사용자가 ▶️ 눌러 재생
       }
 
       document.getElementById('choices2').style.display = 'none';
@@ -297,6 +302,7 @@
         videoEl.removeAttribute('src');
         videoEl.load();
         videoEl.style.display = 'none';
+        videoEl.controls = false;
         imgEl.style.display = 'block';
 
         currentIndex++;
