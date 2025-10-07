@@ -43,7 +43,7 @@
     <h1>티니핑 이름 맞추기</h1>
     <div>
       <img id="character-img" src="" alt="캐릭터 이미지">
-      <!-- ✅ 샤샤핑 정답 시 표시되는 비디오 (자동재생 없음, 소리 재생 위해 muted 제거) -->
+      <!-- 샤샤핑 정답 시 표시되는 비디오 (자동재생 없음, 소리 재생은 사용자가 ▶️) -->
       <video id="character-video" style="display:none;" playsinline loop preload="metadata"></video>
     </div>
     <div id="answer-text"></div> <!-- ⬅️ 위치 중요 -->
@@ -156,8 +156,8 @@
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j]], array[i];
-        [array[i], array[j]] = [array[j], array[i]]; // 안전하게 스왑
+        // ✅ 올바른 스왑
+        [array[i], array[j]] = [array[j], array[i]];
       }
       return array;
     }
@@ -178,7 +178,7 @@
       videoEl.removeAttribute('src');
       videoEl.load();
       videoEl.style.display = 'none';
-      videoEl.controls = false; // 표시는 다음에 필요할 때만
+      videoEl.controls = false; // 표시는 필요할 때만
       videoEl.muted = false;    // 기본값: 소리 켜짐 (사용자 재생 필요)
 
       imgEl.style.display = 'block';
@@ -282,12 +282,12 @@
         videoEl.src = current.video; // syasyaping.mp4
         videoEl.style.display = 'block';
 
-        // ✅ 자동재생 금지 / 음소거 해제 / 컨트롤 표시
+        // 자동재생 금지 / 음소거 해제 / 컨트롤 표시
         videoEl.autoplay = false;
         videoEl.muted = false;
         videoEl.controls = true;
 
-        // ❌ videoEl.play() 호출하지 않음 — 사용자가 ▶️ 눌러 재생
+        // 사용자 ▶️를 누를 때까지 play() 호출 안 함
       }
 
       document.getElementById('choices2').style.display = 'none';
