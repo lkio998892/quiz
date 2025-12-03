@@ -7,80 +7,105 @@
   <style>
     body { font-family: 'Arial', sans-serif; text-align: center; padding: 10px; background-color: #f0f8ff; margin: 0; }
     
-    /* === 공통 레이아웃 ===  */
-    #main-container { max-width: 500px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 20px; min-height: 80vh; position: relative; }
-    h1 { font-size: 1.8em; color: #333; margin-top: 10px; }
+    /* === 메인 컨테이너 === */
+    #main-container { max-width: 500px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 15px; min-height: 80vh; position: relative; }
     
-    /* === 홈 버튼 === */
-    #home-btn {
-      position: absolute; top: 10px; left: 10px;
-      padding: 5px 10px; font-size: 0.9em;
-      background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer;
-      z-index: 100;
-      display: none; /* 시작 화면에서는 숨김 */
+    /* === 상단 헤더 (홈 - 제목 - 다음) === */
+    .game-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between; /* 양쪽 끝 정렬 */
+      margin-bottom: 10px;
+      height: 40px;
     }
+
+    /* 버튼 공통 (홈, 다음) - 크기 작게 통일 */
+    .header-btn {
+      padding: 6px 12px; 
+      font-size: 0.9em; 
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer;
+      color: white;
+      white-space: nowrap;
+      min-width: 80px; /* 버튼 최소 너비 맞춰서 균형 유지 */
+    }
+
+    #home-btn { background: #ff9800; }
     #home-btn:hover { background: #e68900; }
 
-    /* === 시작 화면 (모드 선택) === */
+    #next-btn { 
+      background: #673AB7; 
+      display: none; /* 처음엔 숨김 */
+    }
+    #next-btn:hover { background: #5e35b1; }
+
+    /* 제목 스타일 */
+    #game-title {
+      font-size: 1.5em;
+      color: #333;
+      margin: 0;
+      flex-grow: 1; /* 중간 공간 차지 */
+      text-align: center;
+    }
+    
+    /* 빈 공간 채우기용 (다음 버튼 없을 때 제목 중앙 유지) */
+    .placeholder-btn { min-width: 80px; visibility: hidden; }
+
+    /* === 시작 화면 === */
     #start-screen { padding: 40px 0; }
+    h1 { margin-top: 0; font-size: 1.8em; color: #333; }
     .mode-btn {
       display: block; width: 90%; margin: 20px auto; padding: 20px;
       font-size: 1.2em; font-weight: bold; color: white;
       border: none; border-radius: 12px; cursor: pointer;
       transition: transform 0.2s;
     }
-    .mode-btn.syllable { background: #4CAF50; } /* 초록색 */
-    .mode-btn.choice { background: #2196F3; }   /* 파란색 */
+    .mode-btn.syllable { background: #4CAF50; }
+    .mode-btn.choice { background: #2196F3; }
     .mode-btn:hover { transform: scale(1.03); opacity: 0.9; }
     .mode-desc { font-size: 0.9em; color: #eee; margin-top: 5px; font-weight: normal; }
 
-    /* === 게임 공통 요소 === */
+    /* === 게임 영역 === */
     #game-area { display: none; }
+
+    /* 이미지/비디오 */
     #character-img {
       width: 100%; max-height: 300px; object-fit: contain;
-      border: 2px solid #ddd; border-radius: 10px; margin-bottom: 10px;
-      cursor: pointer; /* 클릭 가능 표시 */
+      border: 2px solid #ddd; border-radius: 10px; margin-bottom: 5px;
+      cursor: pointer;
     }
     #character-video {
       width: 100%; border: 2px solid #ddd; border-radius: 10px; display: none; margin-bottom: 10px;
     }
-    #message { height: 24px; color: #e91e63; font-weight: bold; margin: 10px 0; }
-    
-    /* 정답/힌트 텍스트 */
-    #answer-display { font-size: 1.6em; font-weight: bold; margin: 10px 0; color: #333; }
-    .hint-text { font-size: 0.8em; color: #888; margin-bottom: 5px; }
 
-    /* 버튼 스타일 (공통) */
+    /* 텍스트 */
+    #message { height: 24px; color: #e91e63; font-weight: bold; margin: 10px 0; font-size: 1.2em; }
+    #answer-display { font-size: 1.6em; font-weight: bold; margin: 5px 0; color: #333; }
+    .hint-text { font-size: 0.9em; color: #888; margin-bottom: 5px; min-height: 1.2em; }
+
+    /* 보기 버튼 */
     .choice-btn {
       background: #f9f9f9; border: 2px solid #ddd; border-radius: 8px;
-      padding: 12px; font-size: 1.3em; cursor: pointer; margin: 5px;
+      padding: 15px; 
+      font-size: 1.8em;
+      cursor: pointer; margin: 5px;
       touch-action: manipulation;
+      word-break: keep-all;
     }
     .choice-btn:hover { background: #eef; border-color: #bce; }
     .choice-btn:active { background: #dde; }
 
-    /* 모드 1: 글자 맞추기용 레이아웃 */
     #syllable-container button { min-width: 60px; }
-    
-    /* 모드 2: 4지선다용 레이아웃 */
     #choice-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px;
     }
-
-    /* 다음 버튼 */
-    .next-btn {
-      margin-top: 20px; padding: 12px 30px; font-size: 1.1em;
-      background: #673AB7; color: white; border: none; border-radius: 25px; cursor: pointer;
-    }
-    .next-btn:hover { background: #5e35b1; }
-
   </style>
 </head>
 <body>
 
   <div id="main-container">
-    <button id="home-btn" onclick="goHome()">🏠 홈으로</button>
-
+    
     <div id="start-screen">
       <h1>티니핑 이름 맞추기</h1>
       <p>게임을 선택해주세요!</p>
@@ -97,7 +122,13 @@
     </div>
 
     <div id="game-area">
-      <h2 id="game-title"></h2>
+      
+      <div class="game-header">
+        <button id="home-btn" class="header-btn" onclick="goHome()">🏠 홈으로</button>
+        <h2 id="game-title">게임 제목</h2>
+        <button id="next-btn" class="header-btn">다음 문제 ▶</button>
+        <div id="next-placeholder" class="placeholder-btn"></div>
+      </div>
       
       <div style="position: relative;">
         <img id="character-img" src="" alt="캐릭터">
@@ -116,9 +147,6 @@
 
       <div id="choice-grid" style="display:none;"></div>
 
-      <div id="next-area" style="display:none;">
-        <button id="next-btn" class="next-btn">다음 문제 ▶</button>
-      </div>
     </div>
   </div>
 
@@ -142,7 +170,7 @@
       speechSynthesis.speak(utter);
     }
 
-    // ====== 2. 데이터 (제공해주신 목록) ======
+    // ====== 2. 데이터 ======
     const characters = [
       { name: '아휴핑', img: 'ahyuping.png', video: 'ahyuping.mp4' },
       { name: '아자핑', img: 'ajaping.png', video: 'ajaping.mp4' },
@@ -221,19 +249,16 @@
       return arr;
     }
 
-    // ====== 3. 전역 상태 변수 ======
-    let currentMode = ''; // 'syllable' or 'choice'
+    // ====== 3. 전역 상태 ======
+    let currentMode = ''; 
     let questionList = [];
     let currentIndex = 0;
     
-    // 모드 1용 변수
     let selectedFirst = null;
     let selectedSecond = null;
 
-    // ====== 4. 화면 제어 함수 (홈/게임 시작) ======
-    
+    // ====== 4. 화면 제어 ======
     function goHome() {
-      // 비디오 정지 및 초기화
       const v = document.getElementById('character-video');
       v.pause();
       v.src = "";
@@ -241,7 +266,6 @@
 
       document.getElementById('start-screen').style.display = 'block';
       document.getElementById('game-area').style.display = 'none';
-      document.getElementById('home-btn').style.display = 'none';
     }
 
     function startGame(mode) {
@@ -251,48 +275,57 @@
 
       document.getElementById('start-screen').style.display = 'none';
       document.getElementById('game-area').style.display = 'block';
-      document.getElementById('home-btn').style.display = 'block'; // 홈 버튼 표시
 
-      // 모드별 컨테이너 표시/숨김
+      // 모드별 화면 세팅
       if (mode === 'syllable') {
         document.getElementById('game-title').textContent = "글자 맞추기";
         document.getElementById('syllable-container').style.display = 'block';
         document.getElementById('choice-grid').style.display = 'none';
-        document.getElementById('hint-msg').style.display = 'none'; // 글자모드에선 힌트 숨김(선택사항)
+        document.getElementById('hint-msg').style.display = 'none'; 
       } else {
         document.getElementById('game-title').textContent = "객관식 맞추기";
         document.getElementById('syllable-container').style.display = 'none';
         document.getElementById('choice-grid').style.display = 'grid';
-        document.getElementById('hint-msg').style.display = 'block';
+        document.getElementById('hint-msg').style.display = 'block'; 
         document.getElementById('hint-msg').textContent = "👆 사진을 누르면 이름을 들려줘요";
       }
 
       loadQuestion();
     }
 
-    // ====== 5. 문제 로드 (모드 분기) ======
+    // ====== 5. 문제 로드 ======
     function loadQuestion() {
       const current = questionList[currentIndex];
       const imgEl = document.getElementById('character-img');
       const videoEl = document.getElementById('character-video');
       const msgEl = document.getElementById('message');
-      const answerDisplay = document.getElementById('answer-display');
-      const nextArea = document.getElementById('next-area');
-
-      // UI 초기화
-      msgEl.textContent = '';
-      nextArea.style.display = 'none';
+      const hintMsg = document.getElementById('hint-msg');
       
-      // 비디오 숨기기, 이미지 보이기
+      const nextBtn = document.getElementById('next-btn');
+      const placeholder = document.getElementById('next-placeholder');
+
+      // 초기화
+      msgEl.textContent = '';
+      
+      // 다음 버튼 숨기고, 공간 차지용 div 보이기 (제목 중앙 유지)
+      nextBtn.style.display = 'none';
+      placeholder.style.display = 'block';
+      
       try { videoEl.pause(); } catch(e){}
       videoEl.style.display = 'none';
       videoEl.src = "";
+      
       imgEl.style.display = 'block';
       imgEl.src = current.img;
 
-      // 이미지 클릭 이벤트 (모드별 다르게 설정 가능, 현재는 둘 다 지원하도록 설정)
+      if (currentMode === 'choice') {
+        hintMsg.style.display = 'block';
+      } else {
+        hintMsg.style.display = 'none';
+      }
+
+      // 이미지 클릭 (객관식 모드 힌트)
       imgEl.onclick = () => {
-        // 객관식 모드에서만 읽어주기 (요청사항 반영)
         if (currentMode === 'choice') {
            speak(current.name);
         }
@@ -305,7 +338,7 @@
       }
     }
 
-    // ====== 6. [모드 1] 글자 맞추기 로직 ======
+    // ====== 6. [모드 1] 글자 맞추기 ======
     function setupSyllableGame(current) {
       const answerDisplay = document.getElementById('answer-display');
       answerDisplay.innerHTML = "정답: OO핑";
@@ -316,7 +349,6 @@
       document.getElementById('syllable-choices1').style.display = 'block';
       document.getElementById('syllable-choices2').style.display = 'none';
 
-      // 첫 글자 보기
       const correctFirst = [...current.name][0];
       const allFirsts = [...new Set(characters.map(c => [...c.name][0]))];
       let firstOpts = allFirsts.filter(s => s !== correctFirst);
@@ -375,16 +407,15 @@
       });
     }
 
-    // ====== 7. [모드 2] 객관식 로직 ======
+    // ====== 7. [모드 2] 객관식 ======
     function setupChoiceGame(current) {
       const answerDisplay = document.getElementById('answer-display');
       answerDisplay.textContent = "누구일까요?";
 
       const grid = document.getElementById('choice-grid');
-      grid.style.display = 'grid'; // 다시 보이기
+      grid.style.display = 'grid'; 
       grid.innerHTML = '';
 
-      // 오답 3개 + 정답 1개
       const others = characters.filter(c => c.name !== current.name);
       const wrongs = shuffle(others).slice(0, 3);
       let choices = shuffle([...wrongs, current]);
@@ -397,7 +428,6 @@
           if (choice.name === current.name) {
              handleCorrect(current);
           } else {
-             // 틀리면 읽어주기
              speak(choice.name);
              document.getElementById('message').textContent = `땡! 다시 찾아봐!`;
           }
@@ -406,45 +436,46 @@
       });
     }
 
-    // ====== 8. 정답 공통 처리 ======
+    // ====== 8. 정답 처리 ======
     function handleCorrect(current) {
       const msgEl = document.getElementById('message');
       const answerDisplay = document.getElementById('answer-display');
       const imgEl = document.getElementById('character-img');
       const videoEl = document.getElementById('character-video');
-      const nextArea = document.getElementById('next-area');
+      const hintMsg = document.getElementById('hint-msg');
+      
+      const nextBtn = document.getElementById('next-btn');
+      const placeholder = document.getElementById('next-placeholder');
 
-      // 텍스트 업데이트
       msgEl.textContent = "정답입니다! 짝짝짝!";
       answerDisplay.textContent = `정답: ${current.name}`;
       
-      // 이름 읽어주기
       speak(current.name);
 
-      // 보기 영역 숨기기
       document.getElementById('syllable-choices2').style.display = 'none';
       document.getElementById('choice-grid').style.display = 'none';
 
-      // 동영상 재생 (있으면)
       if (current.video) {
         imgEl.style.display = 'none';
+        hintMsg.style.display = 'none'; 
         videoEl.src = current.video;
         videoEl.style.display = 'block';
         videoEl.muted = false;
         videoEl.play().catch(e => console.log('Auto-play blocked', e));
       }
 
-      // 다음 버튼 활성화
-      nextArea.style.display = 'block';
-      document.getElementById('next-btn').onclick = () => {
+      // 다음 버튼 헤더에 표시
+      placeholder.style.display = 'none'; // 공간차지 div 숨김
+      nextBtn.style.display = 'block';    // 진짜 버튼 보임
+      
+      nextBtn.onclick = () => {
         currentIndex++;
         if (currentIndex < questionList.length) {
           loadQuestion();
         } else {
-          // 게임 종료
           document.getElementById('game-area').innerHTML = `
             <h2>🎉 모든 문제를 다 맞췄어요!</h2>
-            <button class="next-btn" onclick="goHome()">홈으로 돌아가기</button>
+            <button class="header-btn" style="background:#4CAF50; font-size:1.2em;" onclick="goHome()">홈으로 돌아가기</button>
           `;
         }
       };
