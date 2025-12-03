@@ -3,318 +3,452 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>티니핑 이름 맞추기 게임</title>
+  <title>티니핑 이름 맞추기 게임 모음</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-    #game-container { max-width: 400px; margin: 0 auto; position: relative; }
-    h1 { font-size: 2em; }
-    #character-img, #character-video {
-      width: 100%; height: auto;
-      border: 2px solid #ccc; border-radius: 8px;
+    body { font-family: 'Arial', sans-serif; text-align: center; padding: 10px; background-color: #f0f8ff; margin: 0; }
+    
+    /* === 공통 레이아웃 === */
+    #main-container { max-width: 500px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 20px; min-height: 80vh; position: relative; }
+    h1 { font-size: 1.8em; color: #333; margin-top: 10px; }
+    
+    /* === 홈 버튼 === */
+    #home-btn {
+      position: absolute; top: 10px; left: 10px;
+      padding: 5px 10px; font-size: 0.9em;
+      background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer;
+      z-index: 100;
+      display: none; /* 시작 화면에서는 숨김 */
     }
+    #home-btn:hover { background: #e68900; }
+
+    /* === 시작 화면 (모드 선택) === */
+    #start-screen { padding: 40px 0; }
+    .mode-btn {
+      display: block; width: 90%; margin: 20px auto; padding: 20px;
+      font-size: 1.2em; font-weight: bold; color: white;
+      border: none; border-radius: 12px; cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .mode-btn.syllable { background: #4CAF50; } /* 초록색 */
+    .mode-btn.choice { background: #2196F3; }   /* 파란색 */
+    .mode-btn:hover { transform: scale(1.03); opacity: 0.9; }
+    .mode-desc { font-size: 0.9em; color: #eee; margin-top: 5px; font-weight: normal; }
+
+    /* === 게임 공통 요소 === */
+    #game-area { display: none; }
+    #character-img {
+      width: 100%; max-height: 300px; object-fit: contain;
+      border: 2px solid #ddd; border-radius: 10px; margin-bottom: 10px;
+      cursor: pointer; /* 클릭 가능 표시 */
+    }
+    #character-video {
+      width: 100%; border: 2px solid #ddd; border-radius: 10px; display: none; margin-bottom: 10px;
+    }
+    #message { height: 24px; color: #e91e63; font-weight: bold; margin: 10px 0; }
+    
+    /* 정답/힌트 텍스트 */
+    #answer-display { font-size: 1.6em; font-weight: bold; margin: 10px 0; color: #333; }
+    .hint-text { font-size: 0.8em; color: #888; margin-bottom: 5px; }
+
+    /* 버튼 스타일 (공통) */
     .choice-btn {
-      display: inline-block;
-      margin: 8px;
-      padding: 10px 20px;
-      font-size: 2em;
-      cursor: pointer;
-      border: 1px solid #888;
-      border-radius: 4px;
-      background: #f0f0f0;
+      background: #f9f9f9; border: 2px solid #ddd; border-radius: 8px;
+      padding: 12px; font-size: 1.3em; cursor: pointer; margin: 5px;
+      touch-action: manipulation;
     }
-    .choice-btn:hover { background: #e0e0e0; }
-    #answer-text { margin-top: 12px; font-size: 1.5em; font-weight: bold; }
-    #message { margin-top: 12px; height: 24px; color: red; font-weight: bold; }
+    .choice-btn:hover { background: #eef; border-color: #bce; }
+    .choice-btn:active { background: #dde; }
+
+    /* 모드 1: 글자 맞추기용 레이아웃 */
+    #syllable-container button { min-width: 60px; }
+    
+    /* 모드 2: 4지선다용 레이아웃 */
+    #choice-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;
+    }
+
+    /* 다음 버튼 */
     .next-btn {
-      margin-top: 12px;
-      padding: 8px 16px;
-      font-size: 1em;
-      cursor: pointer;
-      border: 1px solid #4CAF50;
-      border-radius: 4px;
-      background: #4CAF50;
-      color: white;
+      margin-top: 20px; padding: 12px 30px; font-size: 1.1em;
+      background: #673AB7; color: white; border: none; border-radius: 25px; cursor: pointer;
     }
-    .next-btn:hover { background: #45A049; }
+    .next-btn:hover { background: #5e35b1; }
+
   </style>
 </head>
 <body>
-  <div id="game-container">
-    <h1>티니핑 이름 맞추기</h1>
-    <div>
-      <img id="character-img" src="" alt="캐릭터 이미지">
-      <!-- 샤샤핑 정답 시 표시되는 비디오 (자동재생 없음, 소리 재생은 사용자가 ▶️) -->
-      <video id="character-video" style="display:none;" playsinline loop preload="metadata"></video>
+
+  <div id="main-container">
+    <button id="home-btn" onclick="goHome()">🏠 홈으로</button>
+
+    <div id="start-screen">
+      <h1>티니핑 이름 맞추기</h1>
+      <p>게임을 선택해주세요!</p>
+      
+      <button class="mode-btn syllable" onclick="startGame('syllable')">
+        1. 글자 맞추기
+        <div class="mode-desc">한 글자씩 이름을 맞춰보세요!</div>
+      </button>
+
+      <button class="mode-btn choice" onclick="startGame('choice')">
+        2. 객관식 맞추기
+        <div class="mode-desc">4개 이름 중 정답을 골라보세요!</div>
+      </button>
     </div>
-    <div id="answer-text"></div> <!-- ⬅️ 위치 중요 -->
-    <div id="choices1"></div>
-    <div id="choices2" style="display:none;"></div>
-    <div id="message"></div>
+
+    <div id="game-area">
+      <h2 id="game-title"></h2>
+      
+      <div style="position: relative;">
+        <img id="character-img" src="" alt="캐릭터">
+        <video id="character-video" playsinline loop controls></video>
+        <div id="hint-msg" class="hint-text"></div>
+      </div>
+
+      <div id="answer-display"></div>
+      
+      <div id="message"></div>
+
+      <div id="syllable-container" style="display:none;">
+        <div id="syllable-choices1"></div>
+        <div id="syllable-choices2" style="display:none; margin-top:10px;"></div>
+      </div>
+
+      <div id="choice-grid" style="display:none;"></div>
+
+      <div id="next-area" style="display:none;">
+        <button id="next-btn" class="next-btn">다음 문제 ▶</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    // ====== TTS 준비 ======
+    // ====== 1. TTS 기능 ======
     let sunhiVoice = null;
     function initTTS() {
       const voices = speechSynthesis.getVoices();
-      sunhiVoice = voices.find(v => v.lang === 'ko-KR' && v.name && v.name.includes('SunHi'));
-      if (sunhiVoice) {
-        const warm = new SpeechSynthesisUtterance('');
-        warm.lang = 'ko-KR';
-        warm.voice = sunhiVoice;
-        speechSynthesis.speak(warm);
-      }
+      sunhiVoice = voices.find(v => v.lang === 'ko-KR' && v.name.includes('SunHi'));
     }
     speechSynthesis.onvoiceschanged = initTTS;
     initTTS();
 
     function speak(text) {
-      try {
-        speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'ko-KR';
-        if (sunhiVoice) utter.voice = sunhiVoice;
-        speechSynthesis.speak(utter);
-      } catch(e) {
-        // 미지원 환경은 무시
-      }
+      if (!text) return;
+      speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'ko-KR';
+      utter.rate = 0.9; 
+      if (sunhiVoice) utter.voice = sunhiVoice;
+      speechSynthesis.speak(utter);
     }
 
-    // ====== 캐릭터 목록 (샤샤핑에만 video 속성 추가) ======
+    // ====== 2. 데이터 (제공해주신 목록) ======
     const characters = [
-  { name: '아휴핑', img: 'ahyuping.png', video: 'ahyuping.mp4' },
-  { name: '아자핑', img: 'ajaping.png', video: 'ajaping.mp4' },
-  { name: '앙대핑', img: 'angdaeping.png', video: 'angdaeping.mp4' },
-  { name: '아잉핑', img: 'ayingping.png', video: 'ayingping.mp4' },
-  { name: '발레핑', img: 'balleping.png', video: 'balleping.mp4' },
-  { name: '바네핑', img: 'baneping.png', video: 'baneping.mp4' },
-  { name: '빤짝핑', img: 'banjakping.jpeg', video: 'banjakping.mp4' },
-  { name: '바로핑', img: 'baroping.jpeg', video: 'baroping.mp4' },
-  { name: '베베핑', img: 'bebeping.png', video: 'bebeping.mp4' },
-  { name: '빙글핑', img: 'binggeulping.png', video: 'binggeulping.mp4' },
-  { name: '빛나핑', img: 'bitnaping.jpeg', video: 'bitnaping.mp4' },
-  { name: '부끄핑', img: 'bukkeuping.png', video: 'bukkeuping.mp4' },
-  { name: '차차핑', img: 'chachaping.png', video: 'chachaping.mp4' },
-  { name: '차캐핑', img: 'chakyaeping.png', video: 'chakyaeping.mp4' },
-  { name: '달콤핑', img: 'dalkomping.png', video: 'dalkomping.mp4' },
-  { name: '덜덜핑', img: 'deoldeolping.png', video: 'deoldeolping.mp4' },
-  { name: '딩동핑', img: 'dingdongping.png', video: 'dingdongping.mp4' },
-  { name: '가면핑', img: 'gamyunping.png', video: 'gamyunping.mp4' },
-  { name: '간호핑', img: 'ganhoping.png', video: 'ganhoping.mp4' },
-  { name: '그림핑', img: 'geurimping.png', video: 'geurimping.mp4' },
-  { name: '고마핑', img: 'gomaping.png', video: 'gomaping.mp4' },
-  { name: '공쥬핑', img: 'gongjyuping.png', video: 'gongjyuping.mp4' },
-  { name: '하츄핑', img: 'hachuupping.jpeg', video: 'hachuupping.mp4' },
-  { name: '함께핑', img: 'hamkkaeping.png', video: 'hamkkaeping.mp4' },
-  { name: '핫케핑', img: 'hatkeping.png', video: 'hatkeping.mp4' },
-  { name: '힘내핑', img: 'himnaeping.png', video: 'himnaeping.mp4' },
-  { name: '화나핑', img: 'hwanaping.png', video: 'hwanaping.mp4' },
-  { name: '짝짝핑', img: 'jjakjjakping.png', video: 'jjakjjakping.mp4' },
-  { name: '찌릿핑', img: 'jjiritping.png', video: 'jjiritping.mp4' },
-  { name: '쪼꼼핑', img: 'jjokkomping.png', video: 'jjokkomping.mp4' },
-  { name: '쪼꼬핑', img: 'jjokkoping.png', video: 'jjokkoping.mp4' },
-  { name: '주네핑', img: 'juneping.png', video: 'juneping.mp4' },
-  { name: '깜빡핑', img: 'kkambbakping.png', video: 'kkambbakping.mp4' },
-  { name: '깡총핑', img: 'kkangchongping.png', video: 'kkangchongping.mp4' },
-  { name: '까르핑', img: 'kkareuping.png', video: 'kkareuping.mp4' },
-  { name: '꺼꿀핑', img: 'kkeokkulping.png', video: 'kkeokkulping.mp4' },
-  { name: '꾸래핑', img: 'kkuraeping.png', video: 'kkuraeping.mp4' },
-  { name: '마카핑', img: 'makaping.png', video: 'makaping.mp4' },
-  { name: '말랑핑', img: 'mallangping.png', video: 'mallangping.mp4' },
-  { name: '맛나핑', img: 'matnaping.png', video: 'matnaping.mp4' },
-  { name: '멜로핑', img: 'melloping.jpeg', video: 'melloping.mp4' },
-  { name: '메모핑', img: 'memoping.png', video: 'memoping.mp4' },
-  { name: '믿어핑', img: 'mideoping.png', video: 'mideoping.mp4' },
-  { name: '믿어핑', img: 'mideoping.png', video: 'mideoping.mp4' },
-  { name: '모야핑', img: 'moyaping.png', video: 'moyaping.mp4' },
-  { name: '무거핑', img: 'mugeoping.png', video: 'mugeoping.mp4' },
-  { name: '나나핑', img: 'nanaping.png', video: 'nanaping.mp4' },
-  { name: '나눔핑', img: 'nanumping.png', video: 'nanumping.mp4' },
-  { name: '나르핑', img: 'nareuping.png', video: 'nareuping.mp4' },
-  { name: '노라핑', img: 'noraping.png', video: 'noraping.mp4' },
-  { name: '눈꽃핑', img: 'nunkkotping.png', video: 'nunkkotping.mp4' },
-  { name: '패션핑', img: 'paesyonping.png', video: 'paesyonping.mp4' },
-  { name: '포실핑', img: 'posilping.png', video: 'posilping.mp4' },
-  { name: '삐짐핑', img: 'ppijimping.png', video: 'ppijimping.mp4' },
-  { name: '뿌뿌핑', img: 'ppuppuping.png', video: 'ppuppuping.mp4' },
-  { name: '솔찌핑', img: 'soljjiping.png', video: 'soljjiping.mp4' },
-  { name: '소원핑', img: 'sowonping.png', video: 'sowonping.mp4' },
-  { name: '씽씽핑', img: 'ssingssingping.png', video: 'ssingssingping.mp4' },
-  { name: '샤샤핑', img: 'syasyaping.png', video: 'syasyaping.mp4' },
-  { name: '트러핑', img: 'teureoping.jpeg', video: 'teureoping.mp4' },
-  { name: '토이핑', img: 'toiping.png', video: 'toiping.mp4' },
-  { name: '딱풀핑', img: 'ttakpulping.png', video: 'ttakpulping.mp4' },
-  { name: '따라핑', img: 'ttaraping.png', video: 'ttaraping.mp4' },
-  { name: '뚝딱핑', img: 'ttukttakping.png', video: 'ttukttakping.mp4' },
-  { name: '투투핑', img: 'tutuping.png', video: 'tutuping.mp4' },
-  { name: '얌얌핑', img: 'yamyamping.png', video: 'yamyamping.mp4' },
-  { name: '요거핑', img: 'yogeoping.png', video: 'yogeoping.mp4' }
-];
+      { name: '아휴핑', img: 'ahyuping.png', video: 'ahyuping.mp4' },
+      { name: '아자핑', img: 'ajaping.png', video: 'ajaping.mp4' },
+      { name: '앙대핑', img: 'angdaeping.png', video: 'angdaeping.mp4' },
+      { name: '아잉핑', img: 'ayingping.png', video: 'ayingping.mp4' },
+      { name: '발레핑', img: 'balleping.png', video: 'balleping.mp4' },
+      { name: '바네핑', img: 'baneping.png', video: 'baneping.mp4' },
+      { name: '빤짝핑', img: 'banjakping.jpeg', video: 'banjakping.mp4' },
+      { name: '바로핑', img: 'baroping.jpeg', video: 'baroping.mp4' },
+      { name: '베베핑', img: 'bebeping.png', video: 'bebeping.mp4' },
+      { name: '빙글핑', img: 'binggeulping.png', video: 'binggeulping.mp4' },
+      { name: '빛나핑', img: 'bitnaping.jpeg', video: 'bitnaping.mp4' },
+      { name: '부끄핑', img: 'bukkeuping.png', video: 'bukkeuping.mp4' },
+      { name: '차차핑', img: 'chachaping.png', video: 'chachaping.mp4' },
+      { name: '차캐핑', img: 'chakyaeping.png', video: 'chakyaeping.mp4' },
+      { name: '달콤핑', img: 'dalkomping.png', video: 'dalkomping.mp4' },
+      { name: '덜덜핑', img: 'deoldeolping.png', video: 'deoldeolping.mp4' },
+      { name: '딩동핑', img: 'dingdongping.png', video: 'dingdongping.mp4' },
+      { name: '가면핑', img: 'gamyunping.png', video: 'gamyunping.mp4' },
+      { name: '간호핑', img: 'ganhoping.png', video: 'ganhoping.mp4' },
+      { name: '그림핑', img: 'geurimping.png', video: 'geurimping.mp4' },
+      { name: '고마핑', img: 'gomaping.png', video: 'gomaping.mp4' },
+      { name: '공쥬핑', img: 'gongjyuping.png', video: 'gongjyuping.mp4' },
+      { name: '하츄핑', img: 'hachuupping.jpeg', video: 'hachuupping.mp4' },
+      { name: '함께핑', img: 'hamkkaeping.png', video: 'hamkkaeping.mp4' },
+      { name: '핫케핑', img: 'hatkeping.png', video: 'hatkeping.mp4' },
+      { name: '힘내핑', img: 'himnaeping.png', video: 'himnaeping.mp4' },
+      { name: '화나핑', img: 'hwanaping.png', video: 'hwanaping.mp4' },
+      { name: '짝짝핑', img: 'jjakjjakping.png', video: 'jjakjjakping.mp4' },
+      { name: '찌릿핑', img: 'jjiritping.png', video: 'jjiritping.mp4' },
+      { name: '쪼꼼핑', img: 'jjokkomping.png', video: 'jjokkomping.mp4' },
+      { name: '쪼꼬핑', img: 'jjokkoping.png', video: 'jjokkoping.mp4' },
+      { name: '주네핑', img: 'juneping.png', video: 'juneping.mp4' },
+      { name: '깜빡핑', img: 'kkambbakping.png', video: 'kkambbakping.mp4' },
+      { name: '깡총핑', img: 'kkangchongping.png', video: 'kkangchongping.mp4' },
+      { name: '까르핑', img: 'kkareuping.png', video: 'kkareuping.mp4' },
+      { name: '꺼꿀핑', img: 'kkeokkulping.png', video: 'kkeokkulping.mp4' },
+      { name: '꾸래핑', img: 'kkuraeping.png', video: 'kkuraeping.mp4' },
+      { name: '마카핑', img: 'makaping.png', video: 'makaping.mp4' },
+      { name: '말랑핑', img: 'mallangping.png', video: 'mallangping.mp4' },
+      { name: '맛나핑', img: 'matnaping.png', video: 'matnaping.mp4' },
+      { name: '멜로핑', img: 'melloping.jpeg', video: 'melloping.mp4' },
+      { name: '메모핑', img: 'memoping.png', video: 'memoping.mp4' },
+      { name: '믿어핑', img: 'mideoping.png', video: 'mideoping.mp4' },
+      { name: '모야핑', img: 'moyaping.png', video: 'moyaping.mp4' },
+      { name: '무거핑', img: 'mugeoping.png', video: 'mugeoping.mp4' },
+      { name: '나나핑', img: 'nanaping.png', video: 'nanaping.mp4' },
+      { name: '나눔핑', img: 'nanumping.png', video: 'nanumping.mp4' },
+      { name: '나르핑', img: 'nareuping.png', video: 'nareuping.mp4' },
+      { name: '노라핑', img: 'noraping.png', video: 'noraping.mp4' },
+      { name: '눈꽃핑', img: 'nunkkotping.png', video: 'nunkkotping.mp4' },
+      { name: '패션핑', img: 'paesyonping.png', video: 'paesyonping.mp4' },
+      { name: '포실핑', img: 'posilping.png', video: 'posilping.mp4' },
+      { name: '삐짐핑', img: 'ppijimping.png', video: 'ppijimping.mp4' },
+      { name: '뿌뿌핑', img: 'ppuppuping.png', video: 'ppuppuping.mp4' },
+      { name: '솔찌핑', img: 'soljjiping.png', video: 'soljjiping.mp4' },
+      { name: '소원핑', img: 'sowonping.png', video: 'sowonping.mp4' },
+      { name: '씽씽핑', img: 'ssingssingping.png', video: 'ssingssingping.mp4' },
+      { name: '샤샤핑', img: 'syasyaping.png', video: 'syasyaping.mp4' },
+      { name: '트러핑', img: 'teureoping.jpeg', video: 'teureoping.mp4' },
+      { name: '토이핑', img: 'toiping.png', video: 'toiping.mp4' },
+      { name: '딱풀핑', img: 'ttakpulping.png', video: 'ttakpulping.mp4' },
+      { name: '따라핑', img: 'ttaraping.png', video: 'ttaraping.mp4' },
+      { name: '뚝딱핑', img: 'ttukttakping.png', video: 'ttukttakping.mp4' },
+      { name: '투투핑', img: 'tutuping.png', video: 'tutuping.mp4' },
+      { name: '얌얌핑', img: 'yamyamping.png', video: 'yamyamping.mp4' },
+      { name: '요거핑', img: 'yogeoping.png', video: 'yogeoping.mp4' }
+    ];
 
-    // ====== 유틸 ======
     function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        // ✅ 올바른 스왑
-        [array[i], array[j]] = [array[j], array[i]];
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
-      return array;
+      return arr;
     }
 
-    // ====== 게임 상태 ======
-    let questions = shuffle([...characters]);
+    // ====== 3. 전역 상태 변수 ======
+    let currentMode = ''; // 'syllable' or 'choice'
+    let questionList = [];
     let currentIndex = 0;
+    
+    // 모드 1용 변수
     let selectedFirst = null;
     let selectedSecond = null;
 
-    // ====== 문제 로드 ======
+    // ====== 4. 화면 제어 함수 (홈/게임 시작) ======
+    
+    function goHome() {
+      // 비디오 정지 및 초기화
+      const v = document.getElementById('character-video');
+      v.pause();
+      v.src = "";
+      v.style.display = 'none';
+
+      document.getElementById('start-screen').style.display = 'block';
+      document.getElementById('game-area').style.display = 'none';
+      document.getElementById('home-btn').style.display = 'none';
+    }
+
+    function startGame(mode) {
+      currentMode = mode;
+      currentIndex = 0;
+      questionList = shuffle([...characters]);
+
+      document.getElementById('start-screen').style.display = 'none';
+      document.getElementById('game-area').style.display = 'block';
+      document.getElementById('home-btn').style.display = 'block'; // 홈 버튼 표시
+
+      // 모드별 컨테이너 표시/숨김
+      if (mode === 'syllable') {
+        document.getElementById('game-title').textContent = "글자 맞추기";
+        document.getElementById('syllable-container').style.display = 'block';
+        document.getElementById('choice-grid').style.display = 'none';
+        document.getElementById('hint-msg').style.display = 'none'; // 글자모드에선 힌트 숨김(선택사항)
+      } else {
+        document.getElementById('game-title').textContent = "객관식 맞추기";
+        document.getElementById('syllable-container').style.display = 'none';
+        document.getElementById('choice-grid').style.display = 'grid';
+        document.getElementById('hint-msg').style.display = 'block';
+        document.getElementById('hint-msg').textContent = "👆 사진을 누르면 이름을 들려줘요";
+      }
+
+      loadQuestion();
+    }
+
+    // ====== 5. 문제 로드 (모드 분기) ======
     function loadQuestion() {
-      const videoEl = document.getElementById('character-video');
+      const current = questionList[currentIndex];
       const imgEl = document.getElementById('character-img');
+      const videoEl = document.getElementById('character-video');
+      const msgEl = document.getElementById('message');
+      const answerDisplay = document.getElementById('answer-display');
+      const nextArea = document.getElementById('next-area');
 
-      // 🔄 이전 문제의 비디오 상태 초기화
+      // UI 초기화
+      msgEl.textContent = '';
+      nextArea.style.display = 'none';
+      
+      // 비디오 숨기기, 이미지 보이기
       try { videoEl.pause(); } catch(e){}
-      videoEl.removeAttribute('src');
-      videoEl.load();
       videoEl.style.display = 'none';
-      videoEl.controls = false; // 표시는 필요할 때만
-      videoEl.muted = false;    // 기본값: 소리 켜짐 (사용자 재생 필요)
-
+      videoEl.src = "";
       imgEl.style.display = 'block';
+      imgEl.src = current.img;
 
-      const current = questions[currentIndex];
-      const syllables = [...current.name];
-      const correctFirst = syllables[0];
+      // 이미지 클릭 이벤트 (모드별 다르게 설정 가능, 현재는 둘 다 지원하도록 설정)
+      imgEl.onclick = () => {
+        // 객관식 모드에서만 읽어주기 (요청사항 반영)
+        if (currentMode === 'choice') {
+           speak(current.name);
+        }
+      };
 
-      document.getElementById('character-img').src = current.img;
-      document.getElementById('message').textContent = '';
-      document.getElementById('choices2').style.display = 'none';
-      document.getElementById('answer-text').innerHTML = `<div style="font-size: 1.5em; font-weight: bold;">정답: OO핑</div>`;
+      if (currentMode === 'syllable') {
+        setupSyllableGame(current);
+      } else {
+        setupChoiceGame(current);
+      }
+    }
+
+    // ====== 6. [모드 1] 글자 맞추기 로직 ======
+    function setupSyllableGame(current) {
+      const answerDisplay = document.getElementById('answer-display');
+      answerDisplay.innerHTML = "정답: OO핑";
+      
       selectedFirst = null;
       selectedSecond = null;
+      
+      document.getElementById('syllable-choices1').style.display = 'block';
+      document.getElementById('syllable-choices2').style.display = 'none';
 
-      const choicesCount1 = 4;
-      const allFirstSyllables = [...new Set(characters.map(c => [...c.name][0]))];
-      let firstChoices = allFirstSyllables.filter(s => s !== correctFirst);
-      firstChoices = shuffle(firstChoices).slice(0, choicesCount1 - 1);
-      firstChoices.push(correctFirst);
-      firstChoices = shuffle(firstChoices);
+      // 첫 글자 보기
+      const correctFirst = [...current.name][0];
+      const allFirsts = [...new Set(characters.map(c => [...c.name][0]))];
+      let firstOpts = allFirsts.filter(s => s !== correctFirst);
+      firstOpts = shuffle(firstOpts).slice(0, 3);
+      firstOpts.push(correctFirst);
+      firstOpts = shuffle(firstOpts);
 
-      const c1 = document.getElementById('choices1');
+      const c1 = document.getElementById('syllable-choices1');
       c1.innerHTML = '';
-      firstChoices.forEach(ch => {
+      firstOpts.forEach(ch => {
         const btn = document.createElement('button');
         btn.textContent = ch;
         btn.className = 'choice-btn';
         btn.onclick = () => {
           speak(ch);
-          selectedFirst = ch;
           if (ch === correctFirst) {
-            document.getElementById('message').textContent = '';
-            document.getElementById('choices1').style.display = 'none';
-            setupSecond(current);
+            selectedFirst = ch;
+            answerDisplay.innerHTML = `정답: ${ch}O핑`;
+            c1.style.display = 'none';
+            setupSyllableSecond(current);
+            document.getElementById('message').textContent = "";
           } else {
-            document.getElementById('message').textContent = '틀렸습니다. 다시 시도해주세요.';
+            document.getElementById('message').textContent = "틀렸습니다. 다시 해보세요!";
           }
         };
         c1.appendChild(btn);
       });
-      c1.style.display = 'block';
     }
 
-    // ====== 두 번째 음절 선택 세팅 ======
-    function setupSecond(current) {
-      const syllables = [...current.name];
-      const correctSecond = syllables[1];
+    function setupSyllableSecond(current) {
+      const correctSecond = [...current.name][1];
+      const allSeconds = [...new Set(characters.map(c => [...c.name][1]))];
+      let secondOpts = allSeconds.filter(s => s !== correctSecond);
+      secondOpts = shuffle(secondOpts).slice(0, 3);
+      secondOpts.push(correctSecond);
+      secondOpts = shuffle(secondOpts);
 
-      const choicesCount2 = 4;
-      const allSecondSyllables = [...new Set(characters.map(c => [...c.name][1]))];
-      let secondChoices = allSecondSyllables.filter(s => s !== correctSecond);
-      secondChoices = shuffle(secondChoices).slice(0, choicesCount2 - 1);
-      secondChoices.push(correctSecond);
-      secondChoices = shuffle(secondChoices);
-
-      const c2 = document.getElementById('choices2');
+      const c2 = document.getElementById('syllable-choices2');
+      c2.style.display = 'block';
       c2.innerHTML = '';
-      document.getElementById('answer-text').innerHTML = `
-        <div style="font-size: 1.5em; font-weight: bold;">정답: ${selectedFirst}O핑</div>
-      `;
-
-      secondChoices.forEach(ch => {
+      
+      secondOpts.forEach(ch => {
         const btn = document.createElement('button');
         btn.textContent = ch;
         btn.className = 'choice-btn';
         btn.onclick = () => {
           speak(ch);
-          selectedSecond = ch;
-          checkAnswer(current);
+          if (ch === correctSecond) {
+            selectedSecond = ch;
+            handleCorrect(current);
+          } else {
+            document.getElementById('message').textContent = "틀렸습니다. 다시 해보세요!";
+          }
         };
         c2.appendChild(btn);
       });
-
-      c2.style.display = 'block';
     }
 
-    // ====== 정답 체크 ======
-    function checkAnswer(current) {
-      const syllables = [...current.name];
-      if (selectedFirst === syllables[0] && selectedSecond === syllables[1]) {
-        document.getElementById('message').textContent = '';
-        showCorrect();
-      } else {
-        document.getElementById('message').textContent = '틀렸습니다. 다시 시도해주세요.';
-        // 정답 표시는 그대로 유지
-      }
+    // ====== 7. [모드 2] 객관식 로직 ======
+    function setupChoiceGame(current) {
+      const answerDisplay = document.getElementById('answer-display');
+      answerDisplay.textContent = "누구일까요?";
+
+      const grid = document.getElementById('choice-grid');
+      grid.style.display = 'grid'; // 다시 보이기
+      grid.innerHTML = '';
+
+      // 오답 3개 + 정답 1개
+      const others = characters.filter(c => c.name !== current.name);
+      const wrongs = shuffle(others).slice(0, 3);
+      let choices = shuffle([...wrongs, current]);
+
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.textContent = choice.name;
+        btn.className = 'choice-btn';
+        btn.onclick = () => {
+          if (choice.name === current.name) {
+             handleCorrect(current);
+          } else {
+             // 틀리면 읽어주기
+             speak(choice.name);
+             document.getElementById('message').textContent = `땡! ${choice.name} (이)야. 다시 찾아봐!`;
+          }
+        };
+        grid.appendChild(btn);
+      });
     }
 
-    // ====== 정답 처리 (샤샤핑일 때만 비디오 표시, 사용자가 직접 재생) ======
-    function showCorrect() {
-      const current = questions[currentIndex];
+    // ====== 8. 정답 공통 처리 ======
+    function handleCorrect(current) {
+      const msgEl = document.getElementById('message');
+      const answerDisplay = document.getElementById('answer-display');
+      const imgEl = document.getElementById('character-img');
+      const videoEl = document.getElementById('character-video');
+      const nextArea = document.getElementById('next-area');
+
+      // 텍스트 업데이트
+      msgEl.textContent = "정답입니다! 짝짝짝!";
+      answerDisplay.textContent = `정답: ${current.name}`;
+      
+      // 이름 읽어주기
       speak(current.name);
 
-      const videoEl = document.getElementById('character-video');
-      const imgEl   = document.getElementById('character-img');
+      // 보기 영역 숨기기
+      document.getElementById('syllable-choices2').style.display = 'none';
+      document.getElementById('choice-grid').style.display = 'none';
 
-      // 샤샤핑 등 video 속성이 있는 캐릭터만 비디오로 전환
+      // 동영상 재생 (있으면)
       if (current.video) {
         imgEl.style.display = 'none';
-        videoEl.src = current.video; // syasyaping.mp4
+        videoEl.src = current.video;
         videoEl.style.display = 'block';
-
-        // 자동재생 금지 / 음소거 해제 / 컨트롤 표시
-        videoEl.autoplay = false;
         videoEl.muted = false;
-        videoEl.controls = true;
-
-        // 사용자 ▶️를 누를 때까지 play() 호출 안 함
+        videoEl.play().catch(e => console.log('Auto-play blocked', e));
       }
 
-      document.getElementById('choices2').style.display = 'none';
-      document.getElementById('answer-text').innerHTML = `
-        <div style="margin-top: 8px; font-size: 1.5em; font-weight: bold;">정답: ${current.name}</div>
-        <button id="next-btn" class="next-btn">Next</button>
-      `;
-
+      // 다음 버튼 활성화
+      nextArea.style.display = 'block';
       document.getElementById('next-btn').onclick = () => {
-        // 다음 문제로 넘어갈 때 비디오/이미지 상태 리셋
-        try { videoEl.pause(); } catch(e){}
-        videoEl.removeAttribute('src');
-        videoEl.load();
-        videoEl.style.display = 'none';
-        videoEl.controls = false;
-        imgEl.style.display = 'block';
-
         currentIndex++;
-        if (currentIndex < questions.length) {
+        if (currentIndex < questionList.length) {
           loadQuestion();
         } else {
-          document.getElementById('game-container').innerHTML = '<h2>🎉 모든 문제를 완료했습니다!</h2>';
+          // 게임 종료
+          document.getElementById('game-area').innerHTML = `
+            <h2>🎉 모든 문제를 다 맞췄어요!</h2>
+            <button class="next-btn" onclick="goHome()">홈으로 돌아가기</button>
+          `;
         }
       };
     }
-
-    // 게임 시작
-    loadQuestion();
   </script>
 </body>
 </html>
